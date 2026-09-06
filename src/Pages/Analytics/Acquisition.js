@@ -8,6 +8,12 @@ import "./Analytics.css";
 const AD_RESOLVE_URL = `${ScannerHost}/api/ad-id-resolve`;
 const _acqResolveCache = new Map();
 
+function isSameSite(host, domain) {
+    const norm = h => (h || "").replace(/^www\./, "").toLowerCase();
+    const h = norm(host), d = norm(domain);
+    return h === d || h.endsWith("." + d);
+}
+
 function isNumericId(val) {
     return val && /^\d{5,}$/.test(String(val).trim());
 }
@@ -297,7 +303,7 @@ export default function AnalyticsAcquisition() {
                                                         : h.host}
                                                 >
                                                     {h.host}
-                                                    {h.host !== domain && h.host !== "(unknown)" && (
+                                                    {!isSameSite(h.host, domain) && h.host !== "(unknown)" && (
                                                         <span className="sa-panel__consent-note"> · cross-site</span>
                                                     )}
                                                     {h.host === "(unknown)" && (

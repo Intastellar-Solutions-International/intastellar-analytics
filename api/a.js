@@ -1968,8 +1968,11 @@ export default async function handler(req, res) {
     // registered under, record the signal but don't track it — unless the owner
     // has explicitly approved that domain for cross-site tracking.
     const normalizeDomain = d => (d || "").replace(/^www\./, "").toLowerCase();
+    const normHost = normalizeDomain(pageHostSanitized);
+    const normSite = normalizeDomain(siteDomain);
     const isForeignDomain = pageHostSanitized &&
-        normalizeDomain(pageHostSanitized) !== normalizeDomain(siteDomain);
+        normHost !== normSite &&
+        !normHost.endsWith("." + normSite);
 
     if (isForeignDomain) {
         const { rows: fdRows } = await db.query(
