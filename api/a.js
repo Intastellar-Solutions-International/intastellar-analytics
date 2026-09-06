@@ -615,6 +615,30 @@ function getVid(){
 }
 var _iaNew=getVid();
 
+// Cross-site session continuation — when a visitor arrives via a decorated
+// link from a partner domain (?ia=SESSION_ID), restore that session so both
+// domains appear as one continuous journey in the analytics. Only applies if
+// no existing session is already live on this domain (don't clobber an active
+// session). The ?ia= param is stripped from the visible URL immediately.
+(function(){
+  try{
+    var p=new URLSearchParams(location.search);
+    var ia=p.get('ia');
+    // Accept only the format getSid() produces: base36 chars, 8-48 length
+    if(ia&&/^[a-z0-9]{8,48}$/i.test(ia)&&!gc('_ia_s')){
+      var base='_ia_s='+encodeURIComponent(ia)+';path=/;SameSite=Lax'+(location.protocol==='https:'?';Secure':'');
+      var d2=rootDomain();
+      if(d2){document.cookie=base+';domain='+d2;if(document.cookie.indexOf('_ia_s=')===-1)document.cookie=base;}
+      else document.cookie=base;
+    }
+    if(ia&&window.history&&window.history.replaceState){
+      p.delete('ia');
+      var qs=p.toString();
+      window.history.replaceState(null,'',location.pathname+(qs?'?'+qs:'')+(location.hash||''));
+    }
+  }catch(e){}
+})();
+
 // Ad click IDs + UTM params captured on landing and persisted for 90 days so
 // they survive across sessions and are still available when a conversion fires
 // later in the same journey. UTM campaign/content often carry numeric platform
@@ -1302,10 +1326,17 @@ function _formId(form){
       if(!host)return;
       // Same host or same root domain (subdomain) → internal
       if(host===location.hostname||rootDomain(host)===myRoot)return;
-      // Approved cross-site property → not outbound
+      // Approved cross-site property → stitch session and skip outbound tracking
       if(_ownDomains.length){
         var hRoot=rootDomain(host);
-        for(var oi=0;oi<_ownDomains.length;oi++){if(rootDomain(_ownDomains[oi])===hRoot)return;}
+        for(var oi=0;oi<_ownDomains.length;oi++){
+          if(rootDomain(_ownDomains[oi])===hRoot){
+            // Decorate the link with ?ia=SESSION_ID so the partner domain can
+            // continue this session instead of starting a new one.
+            try{var u2=new URL(a.href);u2.searchParams.set('ia',getSid());a.href=u2.toString();}catch(e3){}
+            return;
+          }
+        }
       }
       if(FILE_EXT.test(href)){
         track('file_download',{data:{
