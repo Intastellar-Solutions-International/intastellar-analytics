@@ -4,14 +4,14 @@ import { authHeaders } from "./_shared.js";
 import { IconFunnel } from "./Icons.js";
 
 const KIND_LABEL = {
-    view_basket: "Viewed basket", begin_checkout: "Began checkout",
+    add_to_cart: "Added to cart", view_basket: "Viewed basket", begin_checkout: "Began checkout",
     checkout: "Checkout", purchase: "Purchase",
 };
 
 // Fixed e-commerce funnel order — matches ALLOWED_KINDS in api/analytics-events.js.
 // The funnel only renders once 2+ of these steps are registered; a single
 // funnel-kind event (e.g. just "purchase") isn't a funnel on its own.
-const FUNNEL_ORDER = ["view_basket", "begin_checkout", "checkout", "purchase"];
+const FUNNEL_ORDER = ["add_to_cart", "view_basket", "begin_checkout", "checkout", "purchase"];
 
 export default function ConversionFunnel({ domain, funnel, totalConversions, linkedConversions }) {
     const [defs, setDefs] = useState([]);

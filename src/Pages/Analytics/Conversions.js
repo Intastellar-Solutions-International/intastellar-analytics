@@ -51,11 +51,11 @@ const AUTO_EVENT_NAMES = new Set([...AUTO_EVENTS.map(e => e.name), ...INTERNAL_E
 
 const KIND_ICON = {
     purchase: IconCash, click: IconCursorClick, custom: IconTarget,
-    view_basket: IconFunnel, begin_checkout: IconFunnel, checkout: IconFunnel,
+    add_to_cart: IconFunnel, view_basket: IconFunnel, begin_checkout: IconFunnel, checkout: IconFunnel,
 };
 const KIND_LABEL = {
     purchase: "Purchase", click: "Click", custom: "Custom",
-    view_basket: "Viewed basket", begin_checkout: "Began checkout", checkout: "Checkout",
+    add_to_cart: "Added to cart", view_basket: "Viewed basket", begin_checkout: "Began checkout", checkout: "Checkout",
 };
 
 function snippetFor(name, kind) {
@@ -272,14 +272,15 @@ export default function ConversionsPanel({ domain, conversions, onDefsChanged })
                         <option value="click">Click</option>
                         <option value="purchase">Purchase</option>
                         <optgroup label="Checkout funnel">
+                            <option value="add_to_cart">Added to cart</option>
                             <option value="view_basket">Viewed basket</option>
                             <option value="begin_checkout">Began checkout</option>
                             <option value="checkout">Checkout</option>
                         </optgroup>
                     </select>
-                    {["view_basket", "begin_checkout", "checkout"].includes(kind) && (
+                    {["add_to_cart", "view_basket", "begin_checkout", "checkout"].includes(kind) && (
                         <p className="sa-event-form__hint">
-                            Funnel step — register at least two of view basket / began checkout / checkout / purchase
+                            Funnel step — register at least two of add to cart / view basket / began checkout / checkout / purchase
                             to see them in the Funnel &amp; Sources tab.
                         </p>
                     )}
