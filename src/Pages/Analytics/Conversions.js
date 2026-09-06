@@ -51,11 +51,15 @@ const AUTO_EVENT_NAMES = new Set([...AUTO_EVENTS.map(e => e.name), ...INTERNAL_E
 
 const KIND_ICON = {
     purchase: IconCash, click: IconCursorClick, custom: IconTarget,
-    add_to_cart: IconFunnel, view_basket: IconFunnel, begin_checkout: IconFunnel, checkout: IconFunnel,
+    view_item: IconFunnel, add_to_cart: IconFunnel, remove_from_cart: IconFunnel,
+    wishlist_add: IconTarget, view_basket: IconFunnel, begin_checkout: IconFunnel,
+    checkout: IconFunnel, payment_info: IconFunnel, refund: IconCash, apply_coupon: IconCash,
 };
 const KIND_LABEL = {
     purchase: "Purchase", click: "Click", custom: "Custom",
-    add_to_cart: "Added to cart", view_basket: "Viewed basket", begin_checkout: "Began checkout", checkout: "Checkout",
+    view_item: "Viewed product", add_to_cart: "Added to cart", remove_from_cart: "Removed from cart",
+    wishlist_add: "Added to wishlist", view_basket: "Viewed basket", begin_checkout: "Began checkout",
+    checkout: "Checkout", payment_info: "Payment info", refund: "Refund", apply_coupon: "Coupon applied",
 };
 
 function snippetFor(name, kind) {
@@ -65,9 +69,49 @@ function snippetFor(name, kind) {
   currency: 'EUR',
   transactionId: 'ORDER-123',
   products: [
-    { id: 'SKU-001', name: 'Blue T-Shirt', price: 29.99, quantity: 1, category: 'Apparel' },
-    { id: 'SKU-002', name: 'Black Jeans',  price: 19.99, quantity: 1, category: 'Apparel' },
+    { id: 'SKU-001', name: 'Blue T-Shirt', price: 29.99, quantity: 1, category: 'Apparel', variant: 'M / Blue' },
+    { id: 'SKU-002', name: 'Black Jeans',  price: 19.99, quantity: 1, category: 'Apparel', variant: '32 / Black' },
   ],
+});`;
+    }
+    if (kind === "view_item") {
+        return `intaAnalytics.track('${name}', {
+  products: [{ id: 'SKU-001', name: 'Blue T-Shirt', price: 29.99, category: 'Apparel', variant: 'M / Blue' }],
+  currency: 'EUR',
+});`;
+    }
+    if (kind === "add_to_cart" || kind === "remove_from_cart") {
+        return `intaAnalytics.track('${name}', {
+  products: [{ id: 'SKU-001', name: 'Blue T-Shirt', price: 29.99, quantity: 1, category: 'Apparel', variant: 'M / Blue' }],
+  currency: 'EUR',
+});`;
+    }
+    if (kind === "wishlist_add") {
+        return `intaAnalytics.track('${name}', {
+  products: [{ id: 'SKU-001', name: 'Blue T-Shirt', price: 29.99, category: 'Apparel', variant: 'M / Blue' }],
+  currency: 'EUR',
+});`;
+    }
+    if (kind === "refund") {
+        return `intaAnalytics.track('${name}', {
+  transactionId: 'ORDER-123',
+  value: 29.99,
+  currency: 'EUR',
+  products: [{ id: 'SKU-001', name: 'Blue T-Shirt', price: 29.99, quantity: 1, category: 'Apparel' }],
+});`;
+    }
+    if (kind === "apply_coupon") {
+        return `intaAnalytics.track('${name}', {
+  value: 10.00,
+  currency: 'EUR',
+  data: { coupon: 'SUMMER20' },
+});`;
+    }
+    if (kind === "payment_info") {
+        return `intaAnalytics.track('${name}', {
+  value: 49.99,
+  currency: 'EUR',
+  data: { paymentMethod: 'credit_card' },
 });`;
     }
     return `intaAnalytics.track('${name}');`;
@@ -272,15 +316,23 @@ export default function ConversionsPanel({ domain, conversions, onDefsChanged })
                         <option value="click">Click</option>
                         <option value="purchase">Purchase</option>
                         <optgroup label="Checkout funnel">
+                            <option value="view_item">Viewed product</option>
                             <option value="add_to_cart">Added to cart</option>
                             <option value="view_basket">Viewed basket</option>
                             <option value="begin_checkout">Began checkout</option>
                             <option value="checkout">Checkout</option>
+                            <option value="payment_info">Payment info</option>
+                        </optgroup>
+                        <optgroup label="E-commerce">
+                            <option value="remove_from_cart">Removed from cart</option>
+                            <option value="wishlist_add">Added to wishlist</option>
+                            <option value="refund">Refund</option>
+                            <option value="apply_coupon">Coupon applied</option>
                         </optgroup>
                     </select>
-                    {["add_to_cart", "view_basket", "begin_checkout", "checkout"].includes(kind) && (
+                    {["view_item", "add_to_cart", "view_basket", "begin_checkout", "checkout", "payment_info"].includes(kind) && (
                         <p className="sa-event-form__hint">
-                            Funnel step — register at least two of add to cart / view basket / began checkout / checkout / purchase
+                            Funnel step — register at least two of view product / add to cart / view basket / began checkout / checkout / payment info / purchase
                             to see them in the Funnel &amp; Sources tab.
                         </p>
                     )}

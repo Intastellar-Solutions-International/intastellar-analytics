@@ -4,14 +4,14 @@ import { authHeaders } from "./_shared.js";
 import { IconFunnel } from "./Icons.js";
 
 const KIND_LABEL = {
-    add_to_cart: "Added to cart", view_basket: "Viewed basket", begin_checkout: "Began checkout",
-    checkout: "Checkout", purchase: "Purchase",
+    view_item: "Viewed product", add_to_cart: "Added to cart", view_basket: "Viewed basket",
+    begin_checkout: "Began checkout", checkout: "Checkout", payment_info: "Payment info", purchase: "Purchase",
 };
 
 // Fixed e-commerce funnel order — matches ALLOWED_KINDS in api/analytics-events.js.
 // The funnel only renders once 2+ of these steps are registered; a single
 // funnel-kind event (e.g. just "purchase") isn't a funnel on its own.
-const FUNNEL_ORDER = ["add_to_cart", "view_basket", "begin_checkout", "checkout", "purchase"];
+const FUNNEL_ORDER = ["view_item", "add_to_cart", "view_basket", "begin_checkout", "checkout", "payment_info", "purchase"];
 
 export default function ConversionFunnel({ domain, funnel, totalConversions, linkedConversions }) {
     const [defs, setDefs] = useState([]);
@@ -51,8 +51,8 @@ export default function ConversionFunnel({ domain, funnel, totalConversions, lin
 
             {!loading && funnelSteps.length === 0 && (
                 <p className="sa-panel__sub">
-                    Register at least two checkout-funnel events (view_basket, begin_checkout, checkout,
-                    purchase) under Events &amp; Tracking to see a funnel here.
+                    Register at least two checkout-funnel events (view_item, add_to_cart, view_basket,
+                    begin_checkout, checkout, payment_info, purchase) under Events &amp; Tracking to see a funnel here.
                 </p>
             )}
 
