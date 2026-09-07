@@ -97,6 +97,13 @@
     color: rgba(255, 255, 255, 0.3);
 }
 
+.compliance-hero__stat-source {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.18);
+    letter-spacing: 0.03em;
+    margin-top: 1px;
+}
+
 .compliance-hero__stat-divider {
     width: 1px;
     height: 32px;

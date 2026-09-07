@@ -530,7 +530,7 @@ export default function Dashboard(props) {
                                                     </span>
                                                     <span className="dash-scan-card__icon">🍪</span>
                                                 </div>
-                                                <span className="dash-scan-card__label">Pre-consent cookies</span>
+                                                <span className="dash-scan-card__label">Pre-consent cookies (scan)</span>
                                                 <span className="dash-scan-card__sub">
                                                     {scanSummary
                                                         ? thirdParty > 0 ? `${thirdParty} third-party · ${cookies.length - thirdParty} first-party` : "All first-party"

@@ -450,6 +450,7 @@ export default function CompliancePage() {
                                 {preCount > 0 ? preCount.toLocaleString("de-DE") : "—"}
                             </span>
                             <span className="compliance-hero__stat-label">Pre-consent cookies</span>
+                            <span className="compliance-hero__stat-source">CMP scanner · all visits</span>
                         </div>
                         <div className="compliance-hero__stat-divider" aria-hidden />
                         <div className="compliance-hero__stat">
