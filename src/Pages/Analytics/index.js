@@ -662,7 +662,7 @@ export default function SiteAnalytics() {
     document.title = "Overview, Analytics | Intastellar Consents";
 
     const {
-        domain, getLastDays, setLastDays, fromDate, setFromDate, toDate, setToDate,
+        domain, hasDomain, getLastDays, setLastDays, fromDate, setFromDate, toDate, setToDate,
         tick, setTick, data, loading, error, showSetup, showData, segment, setSegment,
     } = useAnalyticsPage();
 
@@ -736,20 +736,26 @@ export default function SiteAnalytics() {
 
                     {data && !data.noSiteKey && (
                         <div className="sa-meta-row">
-                            <span className="sa-site-key-badge">
-                                Site key: <code>{data.siteId}</code>
-                            </span>
-                            <SegmentFilter segment={segment} setSegment={setSegment} />
+                            {data.isPropertyRollup ? (
+                                <span className="sa-site-key-badge">Property rollup &mdash; {(data.domains || []).length} domains</span>
+                            ) : (
+                                <span className="sa-site-key-badge">
+                                    Site key: <code>{data.siteId}</code>
+                                </span>
+                            )}
+                            {!data.isPropertyRollup && (
+                                <SegmentFilter segment={segment} setSegment={setSegment} />
+                            )}
                         </div>
                     )}
 
-                    {!domain && (
+                    {!hasDomain && (
                         <p className="sa-notice">Select a specific domain in the header to view analytics.</p>
                     )}
-                    {domain && loading && (
+                    {hasDomain && loading && (
                         <p className="sa-notice">Loading&hellip;</p>
                     )}
-                    {domain && error && (
+                    {hasDomain && error && (
                         <p className="sa-notice sa-notice--error">{error}</p>
                     )}
 

@@ -4,7 +4,7 @@ const Link       = window.ReactRouterDOM.Link;
 const useLocation = window.ReactRouterDOM.useLocation;
 import { ScannerHost } from "../../API/host.js";
 import Authentication from "../../Authentication/Auth.js";
-import { DomainContext } from "../../App.js";
+import { DomainContext, WorkspaceContext } from "../../App.js";
 import {
     useSyncDomainFromRoute, isCombinedOrClearDomain,
     analyticsPath, analyticsAudiencePath, analyticsAcquisitionPath,
@@ -193,22 +193,71 @@ export function useAnalyticsPageChrome() {
     return { handle, domain, getLastDays, setLastDays, fromDate, setFromDate, toDate, setToDate, fromIso, toIso, segment, setSegment };
 }
 
+// Fetches the property-rollup endpoint for a list of domains (workspace combined view).
+// Returns the same {data, loading, detailLoading, error} shape as useAnalyticsReport so
+// useAnalyticsPage() can switch between the two transparently.
+function usePropertyReport(domains, fromIso, toIso, tick) {
+    const domainsKey = (domains || []).slice().sort().join(",");
+    const [data,    setData]    = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error,   setError]   = useState(null);
+
+    useEffect(() => {
+        if (!domainsKey) { setData(null); return; }
+        let ignore = false;
+        setLoading(true);
+        setError(null);
+        const qs = new URLSearchParams({ domains: domainsKey, from: fromIso, to: toIso }).toString();
+        fetch(`${ScannerHost}/api/analytics-property-report?${qs}`, { headers: authHeaders() })
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(json => { if (!ignore) { setData(json); setLoading(false); } })
+            .catch(() => {
+                if (!ignore) { setError("Could not load property analytics."); setLoading(false); }
+            });
+        return () => { ignore = true; };
+    }, [domainsKey, fromIso, toIso, tick]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    return { data, loading, detailLoading: false, error };
+}
+
 // Chrome + the standard useAnalyticsReport() call, for pages that fetch the
 // same report shape (KPIs/daily/countries/...) and nothing more bespoke.
+// When a workspace combined view is active the property rollup endpoint is
+// used instead so analytics pages display rolled-up data across all member
+// domains without any changes to individual page components.
 export function useAnalyticsPage() {
     const chrome = useAnalyticsPageChrome();
+    const [activeWorkspace] = useContext(WorkspaceContext);
     const [tick, setTick] = useState(0);
     const segParam = useMemo(() => {
         const s = chrome.segment;
         const hasAny = s.device || s.country || s.channel || s.consent;
         return hasAny ? s : null;
     }, [chrome.segment]);
-    const { data, loading, detailLoading, error } = useAnalyticsReport(chrome.domain, chrome.fromIso, chrome.toIso, tick, segParam);
+
+    // When workspace combined view is active, domain is null — derive the
+    // domain list from the active workspace and call the rollup endpoint.
+    const workspaceDomains = useMemo(() => {
+        if (chrome.domain) return null; // single-domain mode — skip rollup
+        if (!activeWorkspace?.domains?.length) return null;
+        return activeWorkspace.domains.map(d => d.domain || d).filter(Boolean);
+    }, [chrome.domain, activeWorkspace]);
+
+    const singleResult   = useAnalyticsReport(chrome.domain, chrome.fromIso, chrome.toIso, tick, segParam);
+    const propertyResult = usePropertyReport(workspaceDomains, chrome.fromIso, chrome.toIso, tick);
+
+    const { data, loading, detailLoading, error } = workspaceDomains ? propertyResult : singleResult;
+
+    const isPropertyRollup = !!workspaceDomains;
+    // `hasDomain` is true when either a single domain or a workspace rollup is
+    // active — use this in place of the bare `domain` boolean in UI guards so
+    // analytics pages show data for workspace combined views too.
+    const hasDomain = !!chrome.domain || isPropertyRollup;
 
     const showSetup = !loading && data && (data.noSiteKey || data.noData);
     const showData  = !loading && data && !data.noSiteKey && !data.noData;
 
-    return { ...chrome, tick, setTick, data, loading, detailLoading, error, showSetup, showData };
+    return { ...chrome, tick, setTick, data, loading, detailLoading, error, showSetup, showData, isPropertyRollup, hasDomain };
 }
 
 // % change of `current` vs `previous` — null when there's no previous-period

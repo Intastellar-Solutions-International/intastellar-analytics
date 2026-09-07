@@ -150,7 +150,7 @@ export default function AnalyticsConversionsOverview() {
     const history = useHistory();
 
     const {
-        domain, getLastDays, setLastDays, fromDate, setFromDate, toDate, setToDate,
+        domain, hasDomain, getLastDays, setLastDays, fromDate, setFromDate, toDate, setToDate,
         fromIso, toIso, tick, setTick, data, loading, error, showData,
     } = useAnalyticsPage();
     const ga4 = useGa4TotalSessions(domain, fromIso, toIso);
@@ -221,15 +221,15 @@ export default function AnalyticsConversionsOverview() {
             />
             <div className="dashboard-content">
                 <div className="sa-page">
-                    {!domain && (
+                    {!hasDomain && (
                         <p className="sa-notice">Select a domain in the header to view conversions.</p>
                     )}
-                    {domain && loading && <p className="sa-notice">Loading&hellip;</p>}
-                    {domain && error && <p className="sa-notice sa-notice--error">{error}</p>}
-                    {domain && !loading && data?.noSiteKey && (
+                    {hasDomain && loading && <p className="sa-notice">Loading&hellip;</p>}
+                    {hasDomain && error && <p className="sa-notice sa-notice--error">{error}</p>}
+                    {hasDomain && !loading && data?.noSiteKey && (
                         <p className="sa-notice">No analytics set up for this domain yet.</p>
                     )}
-                    {domain && !loading && data?.noData && (
+                    {hasDomain && !loading && data?.noData && (
                         <p className="sa-notice">No data for the selected period.</p>
                     )}
 
