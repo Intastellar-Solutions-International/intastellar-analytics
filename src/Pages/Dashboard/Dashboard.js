@@ -86,6 +86,7 @@ export default function Dashboard(props) {
     const [loading, setLoading] = useState(false);
     const [loadingCountry, setLoadingCountry] = useState(false);
     const [scanSummary, setScanSummary] = useState(null);
+    const [scanLoading, setScanLoading] = useState(false);
 
     const dashboardView = props.dashboardView;
     let url = API[id].getInteractions.url;
@@ -199,6 +200,21 @@ export default function Dashboard(props) {
             .then(data => { if (data && !data.error) setScanSummary(data); })
             .catch(() => {});
     }, [handle, currentDomain, id]);
+
+    const triggerOverviewScan = () => {
+        const domain = handle || currentDomain;
+        if (!domain || domain === "combined view" || !id || !API[id]?.triggerPreConsentScan) return;
+        setScanLoading(true);
+        fetch(API[id].triggerPreConsentScan.url, {
+            method: API[id].triggerPreConsentScan.method,
+            headers: { ...API[id].triggerPreConsentScan.headers },
+            body: JSON.stringify({ domain, workspaceId }),
+        })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data && !data.error) setScanSummary(data); })
+            .catch(() => {})
+            .finally(() => setScanLoading(false));
+    };
 
     useEffect(() => {
 
@@ -465,9 +481,34 @@ export default function Dashboard(props) {
                                         return !c.domain?.replace(/^\./, "").endsWith(domain);
                                     }).length;
 
+                                    const scanAgeDays = scanSummary?.scanned_at
+                                        ? Math.floor((Date.now() - new Date(scanSummary.scanned_at).getTime()) / 86400000)
+                                        : null;
+                                    const isStale = scanAgeDays != null && scanAgeDays >= 14;
+
                                     return (
                                         <>
-                                            <Link to={compliancePath} className={"dash-scan-card" + (!scanSummary ? " --empty" : nonEU > 0 ? " --warn" : "")}>
+                                            <div className="dash-scan-cards__header">
+                                                <span className={"dash-scan-cards__age" + (isStale ? " --stale" : "")}>
+                                                    {scanSummary
+                                                        ? isStale
+                                                            ? `Scan outdated · ${scanAgeDays} days ago — rescan recommended`
+                                                            : scanAgeDays === 0
+                                                                ? "Scanned today"
+                                                                : `Scanned ${scanAgeDays} day${scanAgeDays !== 1 ? "s" : ""} ago`
+                                                        : null}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className={"dash-scan-cards__scan-btn" + (scanLoading ? " --loading" : "")}
+                                                    onClick={triggerOverviewScan}
+                                                    disabled={scanLoading}
+                                                >
+                                                    {scanLoading ? "Scanning…" : "Scan now"}
+                                                </button>
+                                            </div>
+
+                                            <Link to={compliancePath} className={"dash-scan-card" + (!scanSummary ? " --empty" : isStale ? " --stale" : nonEU > 0 ? " --warn" : "")}>
                                                 <div className="dash-scan-card__top">
                                                     <span className="dash-scan-card__count">
                                                         {scanSummary ? transfers.length : "—"}
@@ -482,7 +523,7 @@ export default function Dashboard(props) {
                                                 </span>
                                             </Link>
 
-                                            <Link to={compliancePath} className={"dash-scan-card" + (!scanSummary ? " --empty" : thirdParty > 0 ? " --warn" : "")}>
+                                            <Link to={compliancePath} className={"dash-scan-card" + (!scanSummary ? " --empty" : isStale ? " --stale" : thirdParty > 0 ? " --warn" : "")}>
                                                 <div className="dash-scan-card__top">
                                                     <span className="dash-scan-card__count">
                                                         {scanSummary ? cookies.length : "—"}

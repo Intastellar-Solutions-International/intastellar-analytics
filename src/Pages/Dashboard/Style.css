@@ -526,6 +526,46 @@
     margin-bottom: 16px;
 }
 
+.dash-scan-cards__header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: -4px;
+}
+
+.dash-scan-cards__age {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.01em;
+}
+
+.dash-scan-cards__age.--stale {
+    color: rgba(220, 140, 50, 0.7);
+}
+
+.dash-scan-cards__scan-btn {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dash-scan-cards__scan-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.dash-scan-cards__scan-btn.--loading {
+    opacity: 0.5;
+    cursor: wait;
+}
+
 .dash-scan-card {
     display: flex;
     flex-direction: column;
@@ -552,6 +592,16 @@
 .dash-scan-card.--warn:hover {
     background: rgba(220, 140, 50, 0.08);
     border-color: rgba(220, 140, 50, 0.3);
+}
+
+.dash-scan-card.--stale {
+    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.02);
+    opacity: 0.6;
+}
+
+.dash-scan-card.--stale .dash-scan-card__count {
+    color: rgba(255, 255, 255, 0.45);
 }
 
 .dash-scan-card.--empty {
