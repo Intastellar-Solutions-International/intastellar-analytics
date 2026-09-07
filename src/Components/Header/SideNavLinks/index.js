@@ -10,7 +10,7 @@ import {
     analyticsConversionsPath, analyticsPageExperimentsPath, analyticsFormsPath,
     analyticsCohortPath, analyticsAlertsPath, analyticsScheduledReportsPath,
     analyticsReportsPath, analyticsReportBuilderPath,
-    analyticsPerformancePath, analyticsPageWeightPath,
+    analyticsPerformancePath, analyticsPageWeightPath, analyticsDigestPath,
 } from "../../../Functions/domainPathSegments.js";
 
 export const reportsLinks = [
@@ -204,6 +204,10 @@ export function buildAnalyticsLinks(domain) {
         {
             name: "Alerts",
             path: analyticsAlertsPath(domain),
+        },
+        {
+            name: "Channel Digest",
+            path: analyticsDigestPath(),
         },
         {
             divider: true,

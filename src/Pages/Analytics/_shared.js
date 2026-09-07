@@ -10,7 +10,7 @@ import {
     analyticsPath, analyticsAudiencePath, analyticsAcquisitionPath,
     analyticsConsentPath, analyticsAdSpendPath, analyticsAttributionPath,
     analyticsConversionsPath, analyticsHeatmapPath, analyticsFormsPath,
-    analyticsPerformancePath, analyticsPageWeightPath,
+    analyticsPerformancePath, analyticsPageWeightPath, analyticsDigestPath,
 } from "../../Functions/domainPathSegments.js";
 import { ymdLocal } from "../../Components/Filter/filterDatePresets.js";
 
@@ -489,9 +489,8 @@ export function useSiteConfig(domain) {
 // ── Analytics section quick-nav (shared across all Analytics pages) ───────────
 export function AnalyticsSubNav({ domain }) {
     const { pathname } = useLocation();
-    if (!domain) return null;
 
-    const tabs = [
+    const domainTabs = domain ? [
         { label: "Overview",    path: analyticsPath(domain),          end: true },
         { label: "Audience",    path: analyticsAudiencePath(domain) },
         { label: "Consent",     path: analyticsConsentPath(domain) },
@@ -499,21 +498,29 @@ export function AnalyticsSubNav({ domain }) {
         { label: "Ad Spend",    path: analyticsAdSpendPath(domain) },
         { label: "Attribution", path: analyticsAttributionPath(domain) },
         { label: "Conversions", path: analyticsConversionsPath(domain) },
-        { label: "Forms",        path: analyticsFormsPath(domain) },
+        { label: "Forms",       path: analyticsFormsPath(domain) },
         { label: "Performance", path: analyticsPerformancePath(domain) },
         { label: "Page Weight", path: analyticsPageWeightPath(domain) },
         { label: "Heatmap",     path: analyticsHeatmapPath(domain) },
+    ] : [];
+
+    // Digest is a portfolio-level tab — always visible regardless of domain selection
+    const allTabs = [
+        ...domainTabs,
+        { label: "Digest", path: analyticsDigestPath(), end: true, portfolio: true },
     ];
+
+    if (!domain && !allTabs.length) return null;
 
     return (
         <nav className="sa-subnav" aria-label="Analytics sections">
-            {tabs.map(t => {
+            {allTabs.map(t => {
                 const active = t.end
                     ? pathname === t.path || pathname === t.path + '/'
                     : pathname === t.path || pathname.startsWith(t.path + '/');
                 return (
                     <Link key={t.path} to={t.path}
-                        className={"sa-subnav__tab" + (active ? " sa-subnav__tab--active" : "")}>
+                        className={"sa-subnav__tab" + (active ? " sa-subnav__tab--active" : "") + (t.portfolio ? " sa-subnav__tab--portfolio" : "")}>
                         {t.label}
                     </Link>
                 );

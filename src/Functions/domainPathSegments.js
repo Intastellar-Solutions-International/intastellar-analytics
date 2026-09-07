@@ -226,6 +226,11 @@ export function analyticsCohortPath(domainUnicode) {
     return `/analytics/${seg}/cohorts`;
 }
 
+/** Portfolio-level channel digest — not domain-scoped, always returns the same path. */
+export function analyticsDigestPath() {
+    return "/analytics/digest";
+}
+
 export function analyticsAlertsPath(domainUnicode) {
     const seg = encodeDomainPathSegment(domainUnicode);
     if (!seg) return "/analytics/alerts";
@@ -262,6 +267,11 @@ export function analyticsReportViewPath(domainUnicode, reportId) {
 /** First arg is React Router v5 `useHistory()` (object with `.push(path)`). */
 export function navigateWithDomain(history, platformId, domainUnicode, pathname) {
     if (String(pathname || "").indexOf("/analytics") === 0) {
+        // Digest is a fixed portfolio-level page — stay there regardless of domain selection
+        if (pathname === "/analytics/digest" || pathname === "/analytics/digest/") {
+            history.push("/analytics/digest");
+            return;
+        }
         const leaf = ["/marketing", "/audience", "/acquisition", "/consent", "/heatmap", "/recordings", "/bots", "/user-flow", "/conversions", "/ad-spend", "/attribution", "/settings", "/google-analytics", "/search-console", "/page-experiments", "/cohorts", "/alerts", "/scheduled-reports", "/forms", "/performance", "/page-weight"].find(s => pathname.includes(s));
         if (leaf === "/marketing")        history.push(analyticsMarketingPath(domainUnicode));
         else if (leaf === "/audience")    history.push(analyticsAudiencePath(domainUnicode));

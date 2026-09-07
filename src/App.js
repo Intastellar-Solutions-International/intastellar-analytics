@@ -75,6 +75,7 @@ import AnalyticsPageWeight from "./Pages/Analytics/PageWeight.js";
 import AnalyticsSavedReports from "./Pages/Analytics/SavedReports.js";
 import AnalyticsReportBuilder from "./Pages/Analytics/ReportBuilder.js";
 import AnalyticsReportView from "./Pages/Analytics/ReportView.js";
+import AnalyticsDigest from "./Pages/Analytics/Digest.js";
 import CookieDatabase from "./Pages/CookieDatabase";
 import TierGate from "./Components/TierGate";
 import DevTierSwitcher from "./Components/DevTierSwitcher";
@@ -529,6 +530,11 @@ export default function App() {
                                         <Route path="/analytics/reports" exact>
                                             {subscriptionLoading ? <LoadingSpinner /> : needsPayment ? <SubscriptionPlans /> : !canAccess('starter') ? <TierGate minTier="starter" featureName="Custom Reports" fullPage /> : <ErrorBoundary>
                                                 <AnalyticsSavedReports />
+                                            </ErrorBoundary>}
+                                        </Route>
+                                        <Route path="/analytics/digest" exact>
+                                            {subscriptionLoading ? <LoadingSpinner /> : needsPayment ? <SubscriptionPlans /> : !canAccess('growth') ? <TierGate minTier="growth" featureName="Channel Digest" fullPage /> : <ErrorBoundary>
+                                                <AnalyticsDigest />
                                             </ErrorBoundary>}
                                         </Route>
                                         <Route path="/analytics/:handle" exact>

@@ -6772,3 +6772,50 @@ details[open] .ca-context-summary::before { content: "▾"; }
     font-weight: 700;
     color: rgba(192,159,83,0.95);
 }
+
+/* ── Channel Digest page ─────────────────────────────────────────────────────── */
+
+.sa-subnav__tab--portfolio {
+    margin-left: auto;
+    padding-left: 16px;
+    border-left: 1px solid rgba(255,255,255,0.06);
+}
+
+.sa-digest-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 0 16px;
+}
+.sa-digest-meta__info {
+    font-size: 0.78rem;
+    color: rgba(155,155,175,0.55);
+}
+.sa-digest-meta__refresh {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    color: rgba(200,200,220,0.7);
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+.sa-digest-meta__refresh:hover { background: rgba(255,255,255,0.09); }
+.sa-digest-meta__refresh:disabled { opacity: 0.4; cursor: default; }
+
+.sa-digest-section { margin-top: 8px; }
+
+.sa-digest-card { position: relative; }
+.sa-digest-card__domain {
+    display: inline-block;
+    font-size: 0.68rem;
+    color: rgba(192,159,83,0.65);
+    background: rgba(192,159,83,0.08);
+    border: 1px solid rgba(192,159,83,0.15);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-bottom: 6px;
+    font-family: monospace;
+    letter-spacing: 0.02em;
+}
