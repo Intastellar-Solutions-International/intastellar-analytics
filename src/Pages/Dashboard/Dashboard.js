@@ -32,6 +32,18 @@ import punycode from "punycode";
 import appStorage from '../../Functions/storage.js';
 
 const { useState, useEffect, useRef, useContext, useMemo } = React;
+
+// Guard against backend calculation bugs that produce percentages outside
+// the valid [0, 100] range (e.g. stale/mismatched denominators). Clamps
+// the value and logs a warning so the issue is visible in the console.
+function safePercent(v) {
+    const n = Number(v);
+    if (!isFinite(n)) return v;
+    if (n < 0 || n > 100) {
+        console.warn("[Intastellar] Acceptance rate out of bounds:", n, "— clamped to [0, 100]");
+    }
+    return Math.min(100, Math.max(0, Math.round(n * 10) / 10));
+}
 const useParams = window.ReactRouterDOM.useParams;
 const Link = window.ReactRouterDOM.Link;
 
@@ -411,13 +423,13 @@ export default function Dashboard(props) {
                             <div className="dashboard-geo-stat">
                                 <span className="dashboard-geo-stat__value">{activeData.euUsers != null ? activeData.euUsers.toLocaleString("de-DE") : "—"}</span>
                                 <span className="dashboard-geo-stat__label">EU visitors</span>
-                                {activeData.euAcceptedRate != null && <span className="dashboard-geo-stat__rate">{activeData.euAcceptedRate.toLocaleString("de-DE")}% accepted</span>}
+                                {activeData.euAcceptedRate != null && <span className="dashboard-geo-stat__rate">{safePercent(activeData.euAcceptedRate).toLocaleString("de-DE")}% accepted</span>}
                             </div>
                             <div className="dashboard-geo-stat__divider" aria-hidden />
                             <div className="dashboard-geo-stat">
                                 <span className="dashboard-geo-stat__value">{activeData.noneEUUsers != null ? activeData.noneEUUsers.toLocaleString("de-DE") : "—"}</span>
                                 <span className="dashboard-geo-stat__label">Non-EU visitors</span>
-                                {activeData.noneEUAcceptedRate != null && <span className="dashboard-geo-stat__rate">{activeData.noneEUAcceptedRate.toLocaleString("de-DE")}% accepted</span>}
+                                {activeData.noneEUAcceptedRate != null && <span className="dashboard-geo-stat__rate">{safePercent(activeData.noneEUAcceptedRate).toLocaleString("de-DE")}% accepted</span>}
                             </div>
                         </div>
                     )}

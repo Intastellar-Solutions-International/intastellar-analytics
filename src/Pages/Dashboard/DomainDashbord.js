@@ -17,6 +17,15 @@ import { PremiumTier } from "../../Components/tiers/index.js";
 import appStorage from '../../Functions/storage.js';
 
 const { useState, useEffect, useRef, useContext, useMemo } = React;
+
+function safePercent(v) {
+    const n = Number(v);
+    if (!isFinite(n)) return v;
+    if (n < 0 || n > 100) {
+        console.warn("[Intastellar] Acceptance rate out of bounds:", n, "— clamped to [0, 100]");
+    }
+    return Math.min(100, Math.max(0, Math.round(n * 10) / 10));
+}
 const useParams = window.ReactRouterDOM.useParams;
 
 export default function DomainDashbord(props) {
@@ -159,12 +168,12 @@ export default function DomainDashbord(props) {
                                     exist: true,
                                     title: "EU based users",
                                     content: "Visitors detected from EU-based IP locations.",
-                                }} styleType="small" totalNumber={activeData?.euUsers != null ? activeData.euUsers.toLocaleString("de-DE") : "—"} percentage={activeData?.euAcceptedRate != null ? activeData.euAcceptedRate.toLocaleString("de-DE") : null} type="EU-based users" fromDate={fromDate} toDate={toDate} />
+                                }} styleType="small" totalNumber={activeData?.euUsers != null ? activeData.euUsers.toLocaleString("de-DE") : "—"} percentage={activeData?.euAcceptedRate != null ? safePercent(activeData.euAcceptedRate).toLocaleString("de-DE") : null} type="EU-based users" fromDate={fromDate} toDate={toDate} />
                                 <Widget explainer={{
                                     exist: true,
                                     title: "Non-EU based users",
                                     content: "Visitors detected from non-EU-based IP locations.",
-                                }} styleType="small" totalNumber={activeData?.noneEUUsers != null ? activeData.noneEUUsers.toLocaleString("de-DE") : "—"} percentage={activeData?.noneEUAcceptedRate != null ? activeData.noneEUAcceptedRate.toLocaleString("de-DE") : null} type="Non-EU-based users" fromDate={fromDate} toDate={toDate} />
+                                }} styleType="small" totalNumber={activeData?.noneEUUsers != null ? activeData.noneEUUsers.toLocaleString("de-DE") : "—"} percentage={activeData?.noneEUAcceptedRate != null ? safePercent(activeData.noneEUAcceptedRate).toLocaleString("de-DE") : null} type="Non-EU-based users" fromDate={fromDate} toDate={toDate} />
                                 <Widget explainer={{
                                     exist: true,
                                     title: "Detected (pre-consent) cookies",
