@@ -167,13 +167,23 @@ export default function App() {
                     if (data.error === "Err_No_Domains" || data.length === 0) {
                         setDomainError(true);
                     } else {
-                        data.unshift({ domain: "combined view", installed: null, lastedVisited: null });
-                        data?.map((d) => {
-                            return punycode.toUnicode(d.domain);
-                        }).filter((d) => {
-                            return d !== undefined && d !== "" && d !== "undefined.";
+                        // Strip entries with invalid/undefined domain values before storing.
+                        // The original .map().filter() here was discarded (never assigned),
+                        // so bad entries like literal "undefined", bare TLD fragments, and
+                        // empty strings were silently passed through to the domain picker.
+                        const BARE_TLD_RE = /^(?:co|com|net|org|gov|ac|ne|or)\.[a-z]{2}$/i;
+                        const cleaned = data.filter((d) => {
+                            const dom = d?.domain;
+                            if (!dom || typeof dom !== "string") return false;
+                            if (dom === "combined view") return false; // re-added below
+                            const decoded = (() => { try { return punycode.toUnicode(dom); } catch { return dom; } })();
+                            if (!decoded || decoded === "undefined" || decoded === "undefined." || decoded === "") return false;
+                            if (!/^[a-zA-Z0-9][a-zA-Z0-9-_.]*\.[a-zA-Z]{2,}$/.test(decoded)) return false;
+                            if (BARE_TLD_RE.test(decoded)) return false;
+                            return true;
                         });
-                        setDomains(data);
+                        cleaned.unshift({ domain: "combined view", installed: null, lastedVisited: null });
+                        setDomains(cleaned);
                         /*
                          * Mirror the names-only cache the header
                          * relies on to hydrate its dropdown
@@ -186,14 +196,9 @@ export default function App() {
                          * introducing a parallel one.
                          */
                         try {
-                            const allowedDomains = data
-                                .map((d) => punycode.toUnicode(d.domain))
-                                .filter(
-                                    (d) =>
-                                        d &&
-                                        d !== "undefined." &&
-                                        d !== "combined view"
-                                );
+                            const allowedDomains = cleaned
+                                .map((d) => { try { return punycode.toUnicode(d.domain); } catch { return d.domain; } })
+                                .filter((d) => d && d !== "combined view");
                             localStorage.setItem(
                                 "domains",
                                 JSON.stringify(allowedDomains)

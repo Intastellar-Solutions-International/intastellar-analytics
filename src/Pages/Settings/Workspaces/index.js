@@ -42,11 +42,25 @@ function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-/**
- * Validate domain format
- */
+// Two-label TLDs that cannot stand alone as a registered domain — e.g.
+// "co.za" or "co.uk" are TLD pairs, not real domain names. Accepting them
+// would let bare TLD fragments into the workspace domain list.
+const BARE_TLD_PAIRS = new Set([
+    "co.uk","co.za","co.nz","co.jp","co.in","co.id","co.ke","co.tz","co.ug",
+    "co.ao","co.bw","co.mz","co.zw","com.au","com.br","com.ar","com.mx",
+    "com.ng","com.gh","com.sg","net.au","org.au","org.uk","gov.uk","ac.uk",
+    "ne.jp","or.jp","go.jp","ed.jp","lg.jp",
+]);
+
 function isValidDomain(domain) {
-    return /^[a-zA-Z0-9][a-zA-Z0-9-_.]*\.[a-zA-Z]{2,}$/.test(domain);
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9-_.]*\.[a-zA-Z]{2,}$/.test(domain)) return false;
+    // Reject bare TLD pairs (e.g. co.za — valid format but not a registrable domain)
+    const lower = domain.toLowerCase();
+    if (BARE_TLD_PAIRS.has(lower)) return false;
+    // Must have a non-empty SLD (the part before the TLD/TLD-pair)
+    const parts = lower.split(".");
+    if (parts.length < 2 || parts[0].length < 2) return false;
+    return true;
 }
 
 export default function Workspaces() {
