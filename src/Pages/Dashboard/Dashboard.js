@@ -342,15 +342,25 @@ export default function Dashboard(props) {
                             </strong>
                             <p>
                                 {verificationStatus.isExpired
-                                    ? `The verification for ${verificationStatus.domain} has expired. Please re-verify to continue accessing consent data.`
-                                    : `${verificationStatus.domain} has not been verified. Verify domain ownership to ensure data accuracy.`}
+                                    ? `Verification for ${verificationStatus.domain} has lapsed — consent data attribution may be paused until re-verified.`
+                                    : `${verificationStatus.domain} hasn't been verified yet. Without verification, consent interactions for this domain may not be attributed to your account.`}
+                            </p>
+                            <p className="dashboard-verification-warning__steps">
+                                To verify: add{" "}
+                                <code>{"<meta name=\"intastellar-verification\" content=\"…\">"}</code>{" "}
+                                to your site's <code>{"<head>"}</code>, or set{" "}
+                                <code>{"window.INTA = { verification: \"…\" }"}</code>{" "}
+                                before the banner script. Your token is in{" "}
+                                <Link to="/settings/workspaces" className="dashboard-verification-warning__inline-link">
+                                    Settings → Workspaces
+                                </Link>.
                             </p>
                         </div>
                         <Link
                             to="/settings/workspaces"
                             className="dashboard-verification-warning__action"
                         >
-                            {verificationStatus.isExpired ? "Re-verify" : "Verify Domain"}
+                            {verificationStatus.isExpired ? "Re-verify" : "See token"}
                         </Link>
                     </div>
                 )}

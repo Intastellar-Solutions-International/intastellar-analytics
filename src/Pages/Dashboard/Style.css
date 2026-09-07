@@ -488,6 +488,30 @@
     line-height: 1.45;
 }
 
+.dashboard-verification-warning__steps {
+    margin-top: 6px !important;
+    font-size: 0.75rem !important;
+    color: rgba(197, 197, 197, 0.55) !important;
+}
+
+.dashboard-verification-warning__steps code {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 0.72rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    padding: 1px 4px;
+}
+
+.dashboard-verification-warning__inline-link {
+    color: #e8c76a;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.dashboard-verification-warning__inline-link:hover {
+    color: #f5d98a;
+}
+
 .dashboard-verification-warning__action {
     flex-shrink: 0;
     padding: 8px 16px;
