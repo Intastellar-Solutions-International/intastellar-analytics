@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 45 45">
+  <circle fill="#4285f4" cx="22.5" cy="22.5" r="22.5"/>
+  <svg x="2.5" y="2.5" width="40" height="40" viewBox="0 0 250 250" enable-background="new 0 0 250 250" xml:space="preserve">
+    <path style="fill:#737373" d="M153.9 38.4H96.1L81.7 52.9v14.4h14.4V52.9h57.8v14.4h14.4V52.9z"/>
+    <defs><path id="sc_a" d="M96.1 38.4h57.7v14.4H96.1z"/></defs>
+    <clipPath id="sc_b"><use xlink:href="#sc_a" style="overflow:visible"/></clipPath>
+    <path style="clip-path:url(#sc_b);fill:#bfbfbf" d="M96.1 38.4v14.5h57.8V38.4z"/>
+    <defs><path id="sc_c" d="M55.3 67.3 27.6 95v102.1c0 8 6.5 14.4 14.4 14.4h166c8 0 14.4-6.5 14.4-14.4v-102l-27.8-27.8H55.3z"/></defs>
+    <clipPath id="sc_d"><use xlink:href="#sc_c" style="overflow:visible"/></clipPath>
+    <radialGradient id="sc_e" cx="-715.537" cy="648.691" r="1" gradientTransform="scale(236.4022 -236.4022) rotate(-45 -1141.09 -539.674)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" style="stop-color:#f1f2f2"/>
+      <stop offset="1" style="stop-color:#e6e7e8"/>
+    </radialGradient>
+    <path style="clip-path:url(#sc_d);fill:url(#sc_e)" d="m125-30.1 169.5 169.5L125 309-44.5 139.4z"/>
+    <path style="fill:#fff" d="M49.3 121.4h151.5v90.2H49.3z"/>
+    <defs><path id="sc_f" d="M27.6 67.3h194.8v54.1H27.6z"/></defs>
+    <clipPath id="sc_g"><use xlink:href="#sc_f" style="overflow:visible"/></clipPath>
+    <path style="clip-path:url(#sc_g);fill:#e0e0e0" d="M55.3 67.3 27.6 95v26.4h194.8V95.1l-27.8-27.8z"/>
+    <defs><path id="sc_h" d="M60.1 200.7H125v10.8H60.1z"/></defs>
+    <clipPath id="sc_i"><use xlink:href="#sc_h" style="overflow:visible"/></clipPath>
+    <path style="clip-path:url(#sc_i);fill:#d1d1d1" d="M60.1 200.7H125v10.8H60.1z"/>
+    <path d="M49.3 104.6c0-6.2 5-11.2 11.2-11.2h129c6.2 0 11.2 5 11.2 11.2v16.8H49.3v-16.8z" style="fill:#4285f4"/>
+    <circle style="fill:#e6e6e6" cx="65.5" cy="107" r="5.4"/>
+    <circle style="fill:#e6e6e6" cx="83.5" cy="107" r="5.4"/>
+    <defs><path id="sc_j" d="M138.5 134h62.2v77.5h-62.2z"/></defs>
+    <clipPath id="sc_k"><use xlink:href="#sc_j" style="overflow:visible"/></clipPath>
+    <path d="M200.7 164.1 178 141.4l-7.6 23.5-31-30.9-.9 47.7 11.5 18c1.7-.3-8.6 11.8-8.6 11.8h59.3v-47.4z" style="clip-path:url(#sc_k);fill:#bababa"/>
+    <path d="M186.5 163.2c0-12.8-7.5-23.8-18.2-29.1v30.4l-14.3 7.7-14.5-7.7V134c-10.7 5.3-18 16.4-18 29.1 0 12.8 7.4 23.8 18.1 29.1v19.3h28.8v-19.3c10.6-5.2 18.1-16.3 18.1-29" style="fill:#4d4d4d"/>
+    <defs><path id="sc_l" d="M60.1 132.2h50.5v57.7H60.1z"/></defs>
+    <clipPath id="sc_m"><use xlink:href="#sc_l" style="overflow:visible"/></clipPath>
+    <path style="clip-path:url(#sc_m);fill:#d1d1d1" d="M60.1 132.2h50.5v57.7H60.1z"/>
+  </svg>
+</svg>

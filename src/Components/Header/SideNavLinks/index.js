@@ -1,3 +1,6 @@
+import googleAnalyticsLogo from "../icons/google-analytics.svg";
+import searchConsoleLogo from "../icons/search-console.svg";
+
 import {
     analyticsAudiencePath, analyticsAcquisitionPath, analyticsConsentPath,
     analyticsMarketingPath, analyticsAdSpendPath, analyticsAttributionPath, analyticsSettingsPath, analyticsGoogleAnalyticsPath,
@@ -126,10 +129,12 @@ export function buildAnalyticsLinks(domain) {
         {
             name: "Google Analytics",
             path: analyticsGoogleAnalyticsPath(domain),
+            logoSrc: googleAnalyticsLogo,
         },
         {
             name: "Search Console",
             path: analyticsSearchConsolePath(domain),
+            logoSrc: searchConsoleLogo,
         },
         {
             divider: true,

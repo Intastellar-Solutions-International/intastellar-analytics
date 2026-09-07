@@ -11,6 +11,7 @@ import { ScannerHost } from "../../API/host.js";
 import { toIsoDate, KpiCard, formatPercent } from "./_shared.js";
 import { IconTrendingUp, IconGlobe, IconTarget } from "./Icons.js";
 import TrendLineChart from "./TrendLineChart.js";
+import searchConsoleLogo from "../../Components/Header/icons/search-console.svg";
 import "./Analytics.css";
 
 /*
@@ -147,6 +148,7 @@ export default function SearchConsole() {
         <div style={{ flex: "1", minWidth: 0 }}>
             <StickyPageTitle
                 title="Search Console"
+                titleLogo={searchConsoleLogo}
                 numberofDays={setLastDays}
                 getLastDays={getLastDays}
                 fromDate={fromDate}

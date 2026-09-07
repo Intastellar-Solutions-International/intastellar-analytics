@@ -11,6 +11,7 @@ import { ScannerHost } from "../../API/host.js";
 import { authHeaders, toIsoDate, KpiCard } from "./_shared.js";
 import { IconBarChart, IconMegaphone, IconCash } from "./Icons.js";
 import { Ga4SessionsChart } from "./GoogleAnalyticsChart.js";
+import googleAnalyticsLogo from "../../Components/Header/icons/google-analytics.svg";
 import "./Analytics.css";
 
 const CURRENCY_SYMBOLS = { EUR: "€", USD: "$", GBP: "£", CHF: "CHF", DKK: "kr", SEK: "kr", NOK: "kr", PLN: "zł" };
@@ -209,6 +210,7 @@ export default function GoogleAnalytics() {
         <div style={{ flex: "1", minWidth: 0 }}>
             <StickyPageTitle
                 title="Google Analytics 4"
+                titleLogo={googleAnalyticsLogo}
                 numberofDays={setLastDays}
                 getLastDays={getLastDays}
                 fromDate={fromDate}

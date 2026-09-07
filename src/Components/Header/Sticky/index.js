@@ -9,6 +9,7 @@ export default function StickyPageTitle({
     loadingUpdated,
     finalLoaded,
     title,
+    titleLogo,
     url,
     method,
     header,
@@ -51,6 +52,9 @@ export default function StickyPageTitle({
                     alignItems: "center",
                 }}>
                     <h1 className="sticky-title">
+                        {titleLogo && (
+                            <img src={titleLogo} alt="" aria-hidden="true" style={{ height: 28, width: 28, objectFit: "contain", verticalAlign: "middle", marginRight: 10, flexShrink: 0 }} />
+                        )}
                         {title}
                         {showInfoButton && (
                             <Button className="secondary" onClick={openSideCart}>i</Button>

@@ -124,7 +124,11 @@ export default function SideNav(props) {
                         return (
                             <li key={key} className="sidebar__item">
                                 <Link className={itemClass} to={url} onClick={closeMobile}>
-                                    {link?.icon ? <i className={"dashboard-icons " + link?.icon} aria-hidden="true"></i> : null}{" "}
+                                    {link?.logoSrc
+                                        ? <img src={link.logoSrc} alt="" aria-hidden="true" style={{ width: 18, height: 18, objectFit: "contain", flexShrink: 0, verticalAlign: "middle" }} />
+                                        : link?.icon
+                                            ? <i className={"dashboard-icons " + link?.icon} aria-hidden="true"></i>
+                                            : null}{" "}
                                     <span className="hiddenCollapsed">{link?.name}</span>
                                 </Link>
                             </li>
