@@ -47,7 +47,7 @@ const AUTO_EVENTS = [
 // "not registered" custom events list without appearing as auto-collected chips.
 const INTERNAL_EVENT_NAMES = new Set(["network_connection"]);
 
-const AUTO_EVENT_NAMES = new Set([...AUTO_EVENTS.map(e => e.name), ...INTERNAL_EVENT_NAMES]);
+export const AUTO_EVENT_NAMES = new Set([...AUTO_EVENTS.map(e => e.name), ...INTERNAL_EVENT_NAMES]);
 
 const KIND_ICON = {
     purchase: IconCash, click: IconCursorClick, custom: IconTarget,

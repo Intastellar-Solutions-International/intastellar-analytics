@@ -7,7 +7,7 @@ import { ScannerHost } from "../../API/host.js";
 import { useAnalyticsPage, KpiCard, authHeaders, useAnalyticsReport, toIsoDate, pctChange, formatPercent } from "./_shared.js";
 import { IconTarget, IconTrendingUp, IconGlobe } from "./Icons.js";
 import AnalyticsWorldMap from "./AnalyticsWorldMap.js";
-import ConversionsPanel from "./Conversions.js";
+import ConversionsPanel, { AUTO_EVENT_NAMES } from "./Conversions.js";
 import TimeToConvert from "./TimeToConvert.js";
 import ConversionChannels from "./ConversionChannels.js";
 import ConversionCampaigns from "./ConversionCampaigns.js";
@@ -168,13 +168,18 @@ export default function AnalyticsConversionsOverview() {
 
     const section = SECTIONS.some(s => s.key === sectionParam) ? sectionParam : "overview";
 
-    const totalConversions = useMemo(
-        () => (data?.conversions || []).reduce((s, c) => s + (c.count || 0), 0),
+    const manualConversions = useMemo(
+        () => (data?.conversions || []).filter(c => !AUTO_EVENT_NAMES.has(c.name)),
         [data]
     );
 
+    const totalConversions = useMemo(
+        () => manualConversions.reduce((s, c) => s + (c.count || 0), 0),
+        [manualConversions]
+    );
+
     const prevTotalConversions = useMemo(
-        () => (prevData?.conversions || []).reduce((s, c) => s + (c.count || 0), 0),
+        () => (prevData?.conversions || []).filter(c => !AUTO_EVENT_NAMES.has(c.name)).reduce((s, c) => s + (c.count || 0), 0),
         [prevData]
     );
 
@@ -258,7 +263,7 @@ export default function AnalyticsConversionsOverview() {
                                         icon={<IconTarget />}
                                         label="Total conversions"
                                         value={totalConversions.toLocaleString("de-DE")}
-                                        sub={`across ${data.conversions.length} registered event${data.conversions.length !== 1 ? "s" : ""}`}
+                                        sub={`across ${manualConversions.length} registered event${manualConversions.length !== 1 ? "s" : ""}`}
                                         trend={trendTotalConversions}
                                     />
                                     <KpiCard className="sa-conv-kpi2"
