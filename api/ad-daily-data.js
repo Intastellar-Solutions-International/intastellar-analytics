@@ -162,6 +162,86 @@ async function fetchGA4ChannelBreakdown(accessToken, propertyId, fromDate, toDat
     }));
 }
 
+async function fetchGA4DeviceBreakdown(accessToken, propertyId, fromDate, toDate) {
+    const resp = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
+        {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+                dateRanges: [{ startDate: fromDate, endDate: toDate }],
+                dimensions: [{ name: "deviceCategory" }],
+                metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "engagementRate" }],
+                orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+            }),
+        }
+    );
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return (data.rows || []).map(row => ({
+        device:         row.dimensionValues?.[0]?.value || "(unknown)",
+        sessions:       Number(row.metricValues?.[0]?.value || 0),
+        users:          Number(row.metricValues?.[1]?.value || 0),
+        engagementRate: Number(row.metricValues?.[2]?.value || 0),
+    }));
+}
+
+async function fetchGA4CountryBreakdown(accessToken, propertyId, fromDate, toDate) {
+    const resp = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
+        {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+                dateRanges: [{ startDate: fromDate, endDate: toDate }],
+                dimensions: [{ name: "country" }],
+                metrics: [{ name: "sessions" }, { name: "totalUsers" }, { name: "newUsers" }],
+                orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+                limit: 10,
+            }),
+        }
+    );
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return (data.rows || []).map(row => ({
+        country:  row.dimensionValues?.[0]?.value || "(unknown)",
+        sessions: Number(row.metricValues?.[0]?.value || 0),
+        users:    Number(row.metricValues?.[1]?.value || 0),
+        newUsers: Number(row.metricValues?.[2]?.value || 0),
+    }));
+}
+
+async function fetchGA4TopPages(accessToken, propertyId, fromDate, toDate) {
+    const resp = await fetch(
+        `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
+        {
+            method: "POST",
+            headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+                dateRanges: [{ startDate: fromDate, endDate: toDate }],
+                dimensions: [{ name: "pagePath" }],
+                metrics: [
+                    { name: "screenPageViews" },
+                    { name: "sessions" },
+                    { name: "averageSessionDuration" },
+                    { name: "engagementRate" },
+                ],
+                orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+                limit: 10,
+            }),
+        }
+    );
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return (data.rows || []).map(row => ({
+        page:               row.dimensionValues?.[0]?.value || "/",
+        pageViews:          Number(row.metricValues?.[0]?.value || 0),
+        sessions:           Number(row.metricValues?.[1]?.value || 0),
+        avgSessionDuration: Number(row.metricValues?.[2]?.value || 0),
+        engagementRate:     Number(row.metricValues?.[3]?.value || 0),
+    }));
+}
+
 async function fetchGA4PlatformBreakdown(accessToken, propertyId, fromDate, toDate) {
     const resp = await fetch(
         `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
@@ -311,15 +391,21 @@ export default async function handler(req, res) {
         })).sort((a, b) => a.date.localeCompare(b.date));
     }
 
-    // For GA4: platform breakdown + aggregate summary + channel group breakdown (all in parallel)
+    // For GA4: all breakdowns in parallel
     let platformBreakdown = null;
     let summary = null;
     let channelBreakdown = null;
+    let deviceBreakdown = null;
+    let countryBreakdown = null;
+    let topPages = null;
     if (platform === "google_analytics" && ga4AccessToken && ga4PropertyId) {
-        [platformBreakdown, summary, channelBreakdown] = await Promise.all([
+        [platformBreakdown, summary, channelBreakdown, deviceBreakdown, countryBreakdown, topPages] = await Promise.all([
             fetchGA4PlatformBreakdown(ga4AccessToken, ga4PropertyId, fromDate, toDate).catch(() => null),
             fetchGA4AggregateSummary(ga4AccessToken, ga4PropertyId, fromDate, toDate).catch(() => null),
             fetchGA4ChannelBreakdown(ga4AccessToken, ga4PropertyId, fromDate, toDate).catch(() => null),
+            fetchGA4DeviceBreakdown(ga4AccessToken, ga4PropertyId, fromDate, toDate).catch(() => null),
+            fetchGA4CountryBreakdown(ga4AccessToken, ga4PropertyId, fromDate, toDate).catch(() => null),
+            fetchGA4TopPages(ga4AccessToken, ga4PropertyId, fromDate, toDate).catch(() => null),
         ]);
     }
 
@@ -333,5 +419,5 @@ export default async function handler(req, res) {
         ]);
     }
 
-    return res.status(200).json({ rows, platformBreakdown, summary, channelBreakdown, topQueries, topPages });
+    return res.status(200).json({ rows, platformBreakdown, summary, channelBreakdown, deviceBreakdown, countryBreakdown, topPages, topQueries });
 }

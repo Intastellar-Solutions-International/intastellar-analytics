@@ -1820,6 +1820,84 @@
     gap: 14px;
 }
 
+.ga4-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+@media (max-width: 700px) {
+    .ga4-two-col { grid-template-columns: 1fr; }
+}
+
+/* New vs Returning */
+.ga4-nvr {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.ga4-nvr__bar-track {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+}
+.ga4-nvr__bar-new {
+    background: rgba(96,165,250,0.55);
+    border-radius: 4px 0 0 4px;
+    transition: width 0.4s ease;
+}
+.ga4-nvr__bar-ret {
+    background: rgba(52,211,153,0.45);
+    border-radius: 0 4px 4px 0;
+    transition: width 0.4s ease;
+}
+.ga4-nvr__legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: rgba(160,160,172,0.7);
+}
+.ga4-nvr__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.ga4-nvr__dot--new { background: rgba(96,165,250,0.7); }
+.ga4-nvr__dot--ret { background: rgba(52,211,153,0.6); }
+.ga4-nvr__label strong { color: rgba(210,215,230,0.9); }
+.ga4-nvr__label { margin-right: 8px; }
+
+/* Channel table inline bar */
+.ga4-ch-bar-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+}
+.ga4-ch-bar-track {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.ga4-ch-bar-fill {
+    height: 100%;
+    background: rgba(145,158,180,0.35);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+.ga4-ch-bar-pct {
+    font-size: 0.72rem;
+    color: rgba(145,158,180,0.55);
+    white-space: nowrap;
+    min-width: 36px;
+    text-align: right;
+}
+
 /* ── Search Console sub-page stack ───────────────────────────────────────────── */
 
 .sa-gsc-stack {
@@ -2846,75 +2924,7 @@
     color: #ececec;
     font-weight: 700;
 }
-/* ─── GA4 Card (Channel Analytics) ──────────────────────────────────────── */
-.ga4-card {
-    margin: 4px 0 18px;
-    padding: 18px 20px 16px;
-    background: rgba(227,116,0,0.04);
-    border: 1px solid rgba(227,116,0,0.14);
-    border-radius: 14px;
-}
-.ga4-card__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-}
-.ga4-card__title {
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: rgba(227,116,0,0.9);
-}
-.ga4-card__badges {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.ga4-sessions-chart__syncing {
-    font-size: 0.72rem;
-    color: rgba(227,116,0,0.6);
-}
-
-/* GA4 KPI strip */
-.ga4-kpi-strip {
-    display: flex;
-    gap: 0;
-    margin-bottom: 16px;
-    border: 1px solid rgba(227,116,0,0.12);
-    border-radius: 10px;
-    overflow: hidden;
-}
-.ga4-kpi {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 8px;
-    border-right: 1px solid rgba(227,116,0,0.1);
-    cursor: default;
-    transition: background 0.12s;
-}
-.ga4-kpi:last-child { border-right: none; }
-.ga4-kpi:hover { background: rgba(227,116,0,0.07); }
-.ga4-kpi__value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: rgba(240,190,80,0.95);
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-}
-.ga4-kpi__label {
-    font-size: 0.66rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgba(145,158,180,0.65);
-    margin-top: 2px;
-    white-space: nowrap;
-}
+/* ─── GA4 server-side badge ──────────────────────────────────────────────── */
 .ga4-ss-badge {
     display: inline-flex;
     align-items: center;

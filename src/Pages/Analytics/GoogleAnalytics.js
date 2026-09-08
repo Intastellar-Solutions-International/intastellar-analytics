@@ -8,34 +8,41 @@ import {
 import StickyPageTitle from "../../Components/Header/Sticky/index.js";
 import Authentication from "../../Authentication/Auth.js";
 import { ScannerHost } from "../../API/host.js";
-import { authHeaders, toIsoDate, KpiCard } from "./_shared.js";
-import { IconBarChart, IconMegaphone, IconCash } from "./Icons.js";
+import { toIsoDate, formatPercent, KpiCard } from "./_shared.js";
+import { IconBarChart, IconUsers, IconGlobe, IconCursorClick } from "./Icons.js";
 import { Ga4SessionsChart } from "./GoogleAnalyticsChart.js";
 import googleAnalyticsLogo from "../../Components/Header/icons/google-analytics.svg";
 import "./Analytics.css";
 
-const CURRENCY_SYMBOLS = { EUR: "€", USD: "$", GBP: "£", CHF: "CHF", DKK: "kr", SEK: "kr", NOK: "kr", PLN: "zł" };
-
-function formatMoney(n, currency) {
-    const symbol = CURRENCY_SYMBOLS[currency] || (currency ? currency + " " : "");
-    return `${symbol} ${Number(n || 0).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function fmtInt(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "—";
+    return Math.round(x).toLocaleString("de-DE");
 }
 
-/*
- * GA4 connection + daily-sessions fetch, scoped to a single domain (GA4
- * connections are per-domain OAuth grants, so there's no meaningful
- * "combined view" the way first-party analytics has one).
- */
+function fmtDuration(seconds) {
+    const s = Math.round(Number(seconds) || 0);
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60), r = s % 60;
+    return r === 0 ? `${m}m` : `${m}m ${r}s`;
+}
+
 function useGa4Report(domain, fromDate, toDate) {
-    const [state, setState] = useState({ checked: false, connected: false, rows: null, platformBreakdown: null, summary: null, channelBreakdown: null, loading: false });
+    const [state, setState] = useState({
+        checked: false, connected: false,
+        rows: null, platformBreakdown: null, summary: null,
+        channelBreakdown: null, deviceBreakdown: null,
+        countryBreakdown: null, topPages: null,
+        loading: false,
+    });
 
     useEffect(() => {
         if (!domain) { setState(s => ({ ...s, checked: false })); return; }
         const authToken = Authentication.getToken();
-        const orgId = Authentication.getOrganisation();
+        const orgId     = Authentication.getOrganisation();
         if (!authToken || !orgId) return;
         const fromYmd = toIsoDate(fromDate);
-        const toYmd2 = toIsoDate(toDate);
+        const toYmd   = toIsoDate(toDate);
 
         let cancelled = false;
         setState(s => ({ ...s, loading: true }));
@@ -47,21 +54,23 @@ function useGa4Report(domain, fromDate, toDate) {
                 if (cancelled) return null;
                 const hasGa4 = (data?.connections || []).some(c => c.platform === "google_analytics" && c.account_id);
                 if (!hasGa4) {
-                    setState({ checked: true, connected: false, rows: null, platformBreakdown: null, summary: null, channelBreakdown: null, loading: false });
+                    setState({ checked: true, connected: false, rows: null, platformBreakdown: null, summary: null, channelBreakdown: null, deviceBreakdown: null, countryBreakdown: null, topPages: null, loading: false });
                     return null;
                 }
-                const qs = `platform=google_analytics&domain=${encodeURIComponent(domain)}&fromDate=${fromYmd}&toDate=${toYmd2}`;
+                const qs = `platform=google_analytics&domain=${encodeURIComponent(domain)}&fromDate=${fromYmd}&toDate=${toYmd}`;
                 return fetch(`${ScannerHost}/api/ad-daily-data?${qs}`, { headers }).then(r => r.ok ? r.json() : null);
             })
             .then(daily => {
                 if (cancelled || !daily) return;
                 setState({
-                    checked: true,
-                    connected: true,
-                    rows: daily.rows || [],
+                    checked: true, connected: true,
+                    rows:              daily.rows              || [],
                     platformBreakdown: daily.platformBreakdown || null,
-                    summary: daily.summary || null,
-                    channelBreakdown: daily.channelBreakdown || null,
+                    summary:           daily.summary           || null,
+                    channelBreakdown:  daily.channelBreakdown  || null,
+                    deviceBreakdown:   daily.deviceBreakdown   || null,
+                    countryBreakdown:  daily.countryBreakdown  || null,
+                    topPages:          daily.topPages          || null,
                     loading: false,
                 });
             })
@@ -73,103 +82,161 @@ function useGa4Report(domain, fromDate, toDate) {
     return state;
 }
 
-/* Real per-campaign performance from connected ad accounts (Google Ads, Meta Ads today). */
-function useCampaignReport(domain, fromIso, toIso) {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        if (!domain) { setData(null); return; }
-        let ignore = false;
-        setLoading(true);
-        const qs = new URLSearchParams({ domain, fromDate: fromIso, toDate: toIso }).toString();
-        fetch(`${ScannerHost}/api/ad-campaign-report?${qs}`, { headers: authHeaders() })
-            .then(async r => {
-                if (!r.ok) throw new Error(r.status);
-                if (!ignore) setData(await r.json());
-            })
-            .catch(() => { if (!ignore) setData(null); })
-            .finally(() => { if (!ignore) setLoading(false); });
-        return () => { ignore = true; };
-    }, [domain, fromIso, toIso]);
-
-    return { data, loading };
-}
-
-function CampaignsPanel({ data, loading, domain }) {
-    if (!domain) return null;
-
-    if (loading && !data) {
-        return (
-            <div className="sa-panel">
-                <h3 className="sa-panel__title"><IconMegaphone className="sa-icon" /> Campaigns</h3>
-                <p className="sa-notice">Loading&hellip;</p>
-            </div>
-        );
-    }
-
-    if (!data || data.noConnections) {
-        return (
-            <div className="sa-panel">
-                <h3 className="sa-panel__title"><IconMegaphone className="sa-icon" /> Campaigns</h3>
-                <p style={{ color: "rgba(130,130,130,0.55)", fontSize: "0.82rem", margin: 0 }}>
-                    No ad platforms connected for this domain. <Link to={analyticsMarketingPath(domain)}>Connect an ad account</Link> to see
-                    real per-campaign performance here.
-                </p>
-            </div>
-        );
-    }
-
+/* ── New vs Returning panel ──────────────────────────────────────────────── */
+function NewVsReturningPanel({ summary }) {
+    if (!summary) return null;
+    const total     = summary.totalUsers || 0;
+    const newUsers  = summary.newUsers   || 0;
+    const returning = Math.max(0, total - newUsers);
+    if (!total) return null;
+    const newPct = (newUsers  / total) * 100;
+    const retPct = (returning / total) * 100;
     return (
-        <>
-            {data.platforms.map(p => (
-                <div className="sa-panel" key={p.platform}>
-                    <h3 className="sa-panel__title">
-                        <IconMegaphone className="sa-icon" /> Campaigns — {p.platform.replace(/_/g, " ")}
-                    </h3>
-                    {!p.supported && (
-                        <p style={{ color: "rgba(130,130,130,0.55)", fontSize: "0.82rem", margin: 0 }}>
-                            Per-campaign data isn't available for this platform yet.
-                        </p>
-                    )}
-                    {p.supported && p.error && (
-                        <p className="sa-notice sa-notice--error">{p.error}</p>
-                    )}
-                    {p.supported && !p.error && (
-                        <table className="sa-table">
-                            <thead>
-                                <tr>
-                                    <th>Campaign</th>
-                                    <th className="sa-table__num">Clicks</th>
-                                    <th className="sa-table__num">Impressions</th>
-                                    <th className="sa-table__num">Spend</th>
-                                    <th className="sa-table__num">CPC</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {p.campaigns.map(c => (
-                                    <tr key={c.id}>
-                                        <td className="sa-table__path" title={c.name}>{c.name}</td>
-                                        <td className="sa-table__num">{c.clicks.toLocaleString("de-DE")}</td>
-                                        <td className="sa-table__num">{c.impressions.toLocaleString("de-DE")}</td>
-                                        <td className="sa-table__num">{formatMoney(c.spend, c.currency)}</td>
-                                        <td className="sa-table__num">
-                                            {c.clicks > 0 ? formatMoney(c.spend / c.clicks, c.currency) : "—"}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {!p.campaigns.length && (
-                                    <tr><td colSpan={5} style={{ color: "rgba(130,130,130,0.55)", fontSize: "0.8rem" }}>No campaigns with activity in this period</td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    )}
+        <div className="sa-panel">
+            <h3 className="sa-panel__title">New vs. returning users</h3>
+            <div className="ga4-nvr">
+                <div className="ga4-nvr__bar-track">
+                    <div className="ga4-nvr__bar-new"  style={{ width: `${newPct}%` }}  title={`New: ${formatPercent(newPct)}`} />
+                    <div className="ga4-nvr__bar-ret"  style={{ width: `${retPct}%` }}  title={`Returning: ${formatPercent(retPct)}`} />
                 </div>
-            ))}
-        </>
+                <div className="ga4-nvr__legend">
+                    <span className="ga4-nvr__dot ga4-nvr__dot--new" />
+                    <span className="ga4-nvr__label">New <strong>{formatPercent(newPct)}</strong> ({fmtInt(newUsers)})</span>
+                    <span className="ga4-nvr__dot ga4-nvr__dot--ret" />
+                    <span className="ga4-nvr__label">Returning <strong>{formatPercent(retPct)}</strong> ({fmtInt(returning)})</span>
+                </div>
+            </div>
+        </div>
     );
 }
 
+/* ── Channel breakdown panel ─────────────────────────────────────────────── */
+function ChannelPanel({ channelBreakdown }) {
+    if (!channelBreakdown?.length) return null;
+    const total = channelBreakdown.reduce((s, c) => s + c.sessions, 0) || 1;
+    return (
+        <div className="sa-panel">
+            <h3 className="sa-panel__title">Channel performance</h3>
+            <table className="sa-table">
+                <thead>
+                    <tr>
+                        <th>Channel</th>
+                        <th></th>
+                        <th className="sa-table__num">Sessions</th>
+                        <th className="sa-table__num">Users</th>
+                        <th className="sa-table__num">Engagement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {channelBreakdown.map(c => {
+                        const share = (c.sessions / total) * 100;
+                        return (
+                            <tr key={c.channelGroup}>
+                                <td style={{ width: "160px" }}>{c.channelGroup}</td>
+                                <td className="ga4-ch-bar-cell">
+                                    <div className="ga4-ch-bar-track">
+                                        <div className="ga4-ch-bar-fill" style={{ width: `${share}%` }} />
+                                    </div>
+                                    <span className="ga4-ch-bar-pct">{formatPercent(share)}</span>
+                                </td>
+                                <td className="sa-table__num">{fmtInt(c.sessions)}</td>
+                                <td className="sa-table__num">{fmtInt(c.users)}</td>
+                                <td className="sa-table__num">{formatPercent(c.engagementRate * 100)}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+/* ── Device breakdown panel ──────────────────────────────────────────────── */
+function DevicePanel({ deviceBreakdown }) {
+    if (!deviceBreakdown?.length) return null;
+    const total = deviceBreakdown.reduce((s, d) => s + d.sessions, 0) || 1;
+    const COLORS = { desktop: "rgba(145,158,180,0.45)", mobile: "rgba(99,102,241,0.55)", tablet: "rgba(52,211,153,0.5)" };
+    return (
+        <div className="sa-panel">
+            <h3 className="sa-panel__title">Devices</h3>
+            <div className="ga4-platform-breakdown__rows">
+                {deviceBreakdown.map(d => {
+                    const share = (d.sessions / total) * 100;
+                    return (
+                        <div key={d.device} className="ga4-pb-row">
+                            <span className="ga4-pb-row__name" style={{ textTransform: "capitalize" }}>{d.device}</span>
+                            <div className="ga4-pb-row__bar-wrap">
+                                <div className="ga4-pb-row__bar" style={{ width: `${Math.max(1, share)}%`, background: COLORS[d.device] || "rgba(145,158,180,0.35)" }} />
+                            </div>
+                            <span className="ga4-pb-row__share">{formatPercent(share)}</span>
+                            <span className="ga4-pb-row__count">{fmtInt(d.sessions)}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+/* ── Country breakdown panel ─────────────────────────────────────────────── */
+function CountryPanel({ countryBreakdown }) {
+    if (!countryBreakdown?.length) return null;
+    const total = countryBreakdown.reduce((s, c) => s + c.sessions, 0) || 1;
+    return (
+        <div className="sa-panel">
+            <h3 className="sa-panel__title">Top countries</h3>
+            <div className="ga4-platform-breakdown__rows">
+                {countryBreakdown.map(c => {
+                    const share = (c.sessions / total) * 100;
+                    return (
+                        <div key={c.country} className="ga4-pb-row">
+                            <span className="ga4-pb-row__name">{c.country}</span>
+                            <div className="ga4-pb-row__bar-wrap">
+                                <div className="ga4-pb-row__bar" style={{ width: `${Math.max(1, share)}%`, background: "rgba(145,158,180,0.35)" }} />
+                            </div>
+                            <span className="ga4-pb-row__share">{formatPercent(share)}</span>
+                            <span className="ga4-pb-row__count">{fmtInt(c.sessions)}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+/* ── Top pages panel ─────────────────────────────────────────────────────── */
+function TopPagesPanel({ topPages }) {
+    if (!topPages?.length) return null;
+    return (
+        <div className="sa-panel">
+            <h3 className="sa-panel__title">Top pages</h3>
+            <table className="sa-table">
+                <thead>
+                    <tr>
+                        <th>Page</th>
+                        <th className="sa-table__num">Page views</th>
+                        <th className="sa-table__num">Sessions</th>
+                        <th className="sa-table__num">Avg. time</th>
+                        <th className="sa-table__num">Engagement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {topPages.map(p => (
+                        <tr key={p.page}>
+                            <td className="sa-table__path" title={p.page}>{p.page}</td>
+                            <td className="sa-table__num">{fmtInt(p.pageViews)}</td>
+                            <td className="sa-table__num">{fmtInt(p.sessions)}</td>
+                            <td className="sa-table__num">{fmtDuration(p.avgSessionDuration)}</td>
+                            <td className="sa-table__num">{formatPercent(p.engagementRate * 100)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
+/* ── Page ────────────────────────────────────────────────────────────────── */
 export default function GoogleAnalytics() {
     document.title = "Google Analytics 4 | Site Analytics";
 
@@ -188,23 +255,10 @@ export default function GoogleAnalytics() {
     });
     const [toDate, setToDate] = useState(() => new Date());
 
-    const fromIso = useMemo(() => toIsoDate(fromDate), [fromDate]);
-    const toIso   = useMemo(() => toIsoDate(toDate),   [toDate]);
-
     const ga4 = useGa4Report(domain, fromDate, toDate);
-    const campaigns = useCampaignReport(domain, fromIso, toIso);
+    const { summary } = ga4;
 
-    const totalCampaignSpend = useMemo(() => {
-        if (!campaigns.data?.platforms) return null;
-        const byCurrency = new Map();
-        for (const p of campaigns.data.platforms) {
-            for (const c of (p.campaigns || [])) {
-                const cur = c.currency || "EUR";
-                byCurrency.set(cur, (byCurrency.get(cur) || 0) + (Number(c.spend) || 0));
-            }
-        }
-        return [...byCurrency.entries()];
-    }, [campaigns.data]);
+    const bounceRatePct = summary ? Math.round((summary.bounceRate || 0) * 100) : null;
 
     return (
         <div style={{ flex: "1", minWidth: 0 }}>
@@ -224,41 +278,94 @@ export default function GoogleAnalytics() {
                         <p className="sa-notice">Select a domain in the header to view Google Analytics data.</p>
                     )}
 
-                    {domain && (
+                    {domain && ga4.loading && !ga4.connected && (
+                        <p className="sa-notice">Loading…</p>
+                    )}
+
+                    {domain && ga4.checked && !ga4.connected && (
+                        <div className="sa-setup">
+                            <div className="sa-setup__icon"><IconBarChart /></div>
+                            <h3 className="sa-setup__title">No Google Analytics 4 property connected for <strong>{domain}</strong></h3>
+                            <p className="sa-setup__body">
+                                Connect a GA4 property to see sessions, engagement, channel breakdown, devices, and top pages here.
+                            </p>
+                            <Link className="sa-setup__gen-btn" to={analyticsMarketingPath(domain)}>
+                                Connect Google Analytics
+                            </Link>
+                        </div>
+                    )}
+
+                    {(ga4.connected || (ga4.loading && ga4.rows)) && (
                         <div className="sa-ga4-stack">
-                            {ga4.checked && !ga4.connected && (
-                                <div className="sa-setup">
-                                    <div className="sa-setup__icon"><IconBarChart /></div>
-                                    <h3 className="sa-setup__title">No Google Analytics 4 property connected for <strong>{domain}</strong></h3>
-                                    <p className="sa-setup__body">
-                                        Connect a GA4 property to see its sessions, engagement, and channel breakdown here.
-                                    </p>
-                                    <Link className="sa-setup__gen-btn" to={analyticsMarketingPath(domain)}>
-                                        Connect Google Analytics
-                                    </Link>
+
+                            {/* ── KPI strip ──────────────────────────────────────── */}
+                            {summary && (
+                                <div className="sa-kpi-row">
+                                    <KpiCard
+                                        icon={<IconBarChart />}
+                                        label="Sessions"
+                                        value={fmtInt(summary.sessions)}
+                                        variant="blue"
+                                    />
+                                    <KpiCard
+                                        icon={<IconUsers />}
+                                        label="Users"
+                                        value={fmtInt(summary.totalUsers)}
+                                        sub={`${fmtInt(summary.newUsers)} new`}
+                                        variant="teal"
+                                    />
+                                    <KpiCard
+                                        icon={<IconCursorClick />}
+                                        label="Page views"
+                                        value={fmtInt(summary.pageViews)}
+                                        variant="purple"
+                                    />
+                                    <KpiCard
+                                        label="Engagement"
+                                        value={formatPercent(summary.engagementRate * 100)}
+                                        sub="engaged sessions / total"
+                                    />
+                                    <KpiCard
+                                        label="Avg. session"
+                                        value={fmtDuration(summary.avgSessionDuration)}
+                                    />
+                                    {bounceRatePct !== null && (
+                                        <KpiCard
+                                            label="Bounce rate"
+                                            value={formatPercent(bounceRatePct)}
+                                            variant={bounceRatePct > 60 ? "warn" : undefined}
+                                        />
+                                    )}
                                 </div>
                             )}
 
-                            {(ga4.connected || ga4.loading) && (
+                            {/* ── Sessions trend ─────────────────────────────────── */}
+                            <div className="sa-panel">
+                                <h3 className="sa-panel__title">Sessions trend</h3>
                                 <Ga4SessionsChart
                                     rows={ga4.rows || []}
                                     platformBreakdown={ga4.platformBreakdown}
-                                    summary={ga4.summary}
+                                    summary={summary}
                                     channelBreakdown={ga4.channelBreakdown}
                                     syncing={ga4.loading}
                                 />
-                            )}
+                            </div>
 
-                            {totalCampaignSpend && totalCampaignSpend.length > 0 && (
-                                <KpiCard
-                                    icon={<IconCash />}
-                                    label="Ad spend (connected campaigns)"
-                                    value={totalCampaignSpend.map(([cur, amt]) => formatMoney(amt, cur)).join(" · ")}
-                                    sub={`${fromIso} – ${toIso}`}
-                                />
-                            )}
+                            {/* ── New vs Returning ───────────────────────────────── */}
+                            <NewVsReturningPanel summary={summary} />
 
-                            <CampaignsPanel data={campaigns.data} loading={campaigns.loading} domain={domain} />
+                            {/* ── Channel performance ────────────────────────────── */}
+                            <ChannelPanel channelBreakdown={ga4.channelBreakdown} />
+
+                            {/* ── Device + Country (2-col) ───────────────────────── */}
+                            <div className="ga4-two-col">
+                                <DevicePanel  deviceBreakdown={ga4.deviceBreakdown} />
+                                <CountryPanel countryBreakdown={ga4.countryBreakdown} />
+                            </div>
+
+                            {/* ── Top pages ──────────────────────────────────────── */}
+                            <TopPagesPanel topPages={ga4.topPages} />
+
                         </div>
                     )}
                 </div>
