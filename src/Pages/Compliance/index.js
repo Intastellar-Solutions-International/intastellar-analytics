@@ -415,7 +415,7 @@ export default function CompliancePage() {
     const auditLogPath = reportsPath(id, currentDomain, "/user-consents");
 
     return (
-        <>
+        <div style={{ flex: "1", minWidth: 0 }}>
             <StickyPageTitle
                 loadingUpdated={loading}
                 finalLoaded={loading}
@@ -1062,6 +1062,6 @@ export default function CompliancePage() {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }

@@ -1,7 +1,8 @@
-/* ── Hero map — full-width ── */
+/* ── Hero map — full-width breakout past the 65px icon nav ── */
 .compliance-hero {
     position: relative;
-    width: 100%;
+    margin-left: -65px;
+    width: calc(100% + 65px);
     min-height: 380px;
     max-height: 520px;
     height: 46vh;
@@ -70,7 +71,7 @@
     display: flex;
     align-items: center;
     gap: 0;
-    padding: 16px 24px 20px;
+    padding: 16px 24px 20px calc(65px + 24px);
 }
 
 .compliance-hero__stat {
