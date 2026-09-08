@@ -144,7 +144,9 @@ export default async function handler(req, res) {
     const cursor    = req.query.cursor ? safeDate(req.query.cursor, null) : null;
 
     const params = [siteId, fromDate, toDate];
-    let where = `site_id = $1 AND started_at >= $2 AND started_at <= $3`;
+    // Exclude recordings explicitly known to have no FullSnapshot (has_snapshot = FALSE).
+    // NULL means unknown (legacy rows before the column was added) — still shown.
+    let where = `site_id = $1 AND started_at >= $2 AND started_at <= $3 AND has_snapshot IS NOT FALSE`;
     if (pathname) { params.push(pathname); where += ` AND $${params.length} = ANY(pathnames)`; }
     if (cursor)   { params.push(cursor);   where += ` AND started_at < $${params.length}`; }
     params.push(limit);

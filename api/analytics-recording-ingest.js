@@ -35,12 +35,14 @@ async function ensureTable(db) {
             browser_family  VARCHAR(32),
             os_family       VARCHAR(32),
             country_code    CHAR(2),
-            status          VARCHAR(12)  NOT NULL DEFAULT 'active'
+            status          VARCHAR(12)  NOT NULL DEFAULT 'active',
+            has_snapshot    BOOLEAN
         );
         CREATE INDEX IF NOT EXISTS idx_ar_site     ON analytics_recordings (site_id);
         CREATE INDEX IF NOT EXISTS idx_ar_session  ON analytics_recordings (session_id);
         CREATE INDEX IF NOT EXISTS idx_ar_started  ON analytics_recordings (started_at);
         CREATE INDEX IF NOT EXISTS idx_ar_status   ON analytics_recordings (status);
+        ALTER TABLE analytics_recordings ADD COLUMN IF NOT EXISTS has_snapshot BOOLEAN;
     `);
 }
 
@@ -102,6 +104,7 @@ export default async function handler(req, res) {
     const sessionId   = String(sid).slice(0, 64);
     const seqNum      = Number.isInteger(seq) ? seq : 0;
 
+    const chunkHasSnapshot = events.some(e => e && e.type === 2);
     const eventsJson = JSON.stringify(events);
     const blobPath = `recordings/${siteId}/${recordingId}/${seqNum}.json`;
 
@@ -128,12 +131,13 @@ export default async function handler(req, res) {
         `INSERT INTO analytics_recordings
            (id, site_id, organisation_id, session_id, started_at, pathnames, entry_pathname,
             chunk_count, chunk_urls, byte_size, device_type, browser_family, os_family, country_code,
-            status, ended_at, duration_sec)
+            status, ended_at, duration_sec, has_snapshot)
          VALUES
            ($1,$2,$3,$4,NOW(),$5,$6,1,ARRAY[$7]::text[],$8,$9,$10,$11,$12,
             CASE WHEN $13 THEN 'complete' ELSE 'active' END,
             CASE WHEN $13 THEN NOW() ELSE NULL END,
-            CASE WHEN $13 THEN 0 ELSE NULL END)
+            CASE WHEN $13 THEN 0 ELSE NULL END,
+            $14)
          ON CONFLICT (id) DO UPDATE SET
            pathnames    = EXCLUDED.pathnames,
            chunk_count  = analytics_recordings.chunk_count + 1,
@@ -141,13 +145,15 @@ export default async function handler(req, res) {
            byte_size    = analytics_recordings.byte_size + $8,
            status       = CASE WHEN $13 THEN 'complete' ELSE analytics_recordings.status END,
            ended_at     = CASE WHEN $13 THEN NOW() ELSE analytics_recordings.ended_at END,
-           duration_sec = CASE WHEN $13 THEN EXTRACT(EPOCH FROM (NOW() - analytics_recordings.started_at))::int ELSE analytics_recordings.duration_sec END`,
+           duration_sec = CASE WHEN $13 THEN EXTRACT(EPOCH FROM (NOW() - analytics_recordings.started_at))::int ELSE analytics_recordings.duration_sec END,
+           has_snapshot = COALESCE(analytics_recordings.has_snapshot, FALSE) OR $14`,
         [
             recordingId, siteId, orgId, sessionId,
             pathList, pathList[0],
             blobUrl, Buffer.byteLength(eventsJson), null,
             browser, os, country,
             !!final,
+            chunkHasSnapshot,
         ]
     ).catch(() => {});
 

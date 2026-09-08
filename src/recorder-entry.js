@@ -44,7 +44,10 @@ import { record } from "rrweb";
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: payload,
-                keepalive: true,
+                // keepalive only for the pagehide/unload final flush — browsers
+                // enforce a 64 KB combined-inflight cap on keepalive requests,
+                // which a FullSnapshot easily exceeds and silently drops.
+                keepalive: !!final,
                 credentials: "omit",
             }).catch(function () {});
         } catch (e) {}
