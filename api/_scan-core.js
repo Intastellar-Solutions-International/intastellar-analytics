@@ -104,6 +104,7 @@ export const TRACKERS = [
     { domains: ["go.g2.com", "g2.com"],                          service: "G2",                    category: "advertising"    },
     { domains: ["log.fc.yahoo.com", "analytics.yahoo.com", "sp.analytics.yahoo.com"], service: "Yahoo Advertising", category: "advertising" },
     { domains: ["marketo.net", "mktoresp.com", "mktdns.net", "mktossl.com"], service: "Adobe Marketo", category: "advertising" },
+    { domains: ["openai.com", "oaiq.com", "chatgpt.com"],                   service: "OpenAI",         category: "advertising" },
 
     // Social widgets & review platforms
     { domains: ["platform.twitter.com", "syndication.twitter.com"], service: "Twitter / X Widgets", category: "social"       },
@@ -482,8 +483,9 @@ export const VENDOR_META = {
     "Termly":             { description: "Privacy policy and cookie consent management platform", privacyUrl: "https://termly.io/our-privacy-policy/", legalBasis: "legal_obligation", transferMechanism: "Standard Contractual Clauses" },
     "Quantcast Choice":   { description: "IAB TCF-certified consent management platform", privacyUrl: "https://www.quantcast.com/privacy/", legalBasis: "legal_obligation", transferMechanism: "EU-US Data Privacy Framework" },
     "CookieHub":          { description: "Cookie consent and compliance management tool", privacyUrl: "https://cookiehub.com/privacy", legalBasis: "legal_obligation", transferMechanism: "EEA" },
-    "Intastellar Analytics": { description: "Privacy-preserving first-party web analytics by Intastellar — event tracking, session analysis, and conversion reporting processed in the EU", privacyUrl: "https://www.intastellarconsents.com/privacy", legalBasis: "legitimate_interest", transferMechanism: "EEA" },
-    "Intastellar Consents": { description: "Consent management platform by Intastellar Solutions", privacyUrl: "https://www.intastellarsolutions.com/about/legal/privacy", legalBasis: "legal_obligation", transferMechanism: "EEA" },
+    "Intastellar Analytics": { description: "Privacy-preserving first-party web analytics by Intastellar — event tracking, session analysis, and conversion reporting processed in the EU", privacyUrl: "https://intastellar.eu/legal/privacy", legalBasis: "legitimate_interest", transferMechanism: "EEA" },
+    "Intastellar Consents": { description: "Consent management platform by Intastellar Solutions", privacyUrl: "https://intastellar.eu/legal/privacy", legalBasis: "legal_obligation", transferMechanism: "EEA" },
+    "OpenAI":               { description: "AI platform operator; sets a first-party conversion identity cookie and a consent-preference cookie for its advertising pixel integration", privacyUrl: "https://openai.com/policies/privacy-policy", legalBasis: "consent", transferMechanism: "Standard Contractual Clauses" },
 };
 
 export const CATEGORY_ORDER = { advertising: 0, fingerprinting: 1, analytics: 2, social: 3, functional: 4, cdn: 5, "third-party": 6 };
@@ -715,6 +717,9 @@ export const COOKIE_NAME_PATTERNS = [
     { exact:  "pardot",           bannerCategory: "marketing"  }, // Pardot session
     // Braze
     { prefix: "__braze_",         bannerCategory: "marketing"  }, // Braze engagement/targeting
+    // OpenAI
+    { exact:  "__oaiq_consent",   bannerCategory: "necessary"  }, // OpenAI tracking consent preference
+    { exact:  "__obref",          bannerCategory: "marketing"  }, // OpenAI hybrid Pixel/CAPI first-party identity for conversion attribution
     // Session recording & heatmaps
     { prefix: "mf_",              bannerCategory: "analytics"  }, // Mouseflow
     { prefix: "SL_",              bannerCategory: "analytics"  }, // Smartlook
